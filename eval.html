@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+
+<body>
+    请输入表达式 <input type="text" id="num" value="" />
+    请输入参数（用逗号隔开） <input type="text" id="param" value="" />
+    <button type="button" onclick="jisuan()">jisuan</button>
+</body>
+
+</html>
+<script>
+    function jisuan() {
+        var str = document.getElementById("num").value;
+        var para = document.getElementById("param").value.split(',');
+        var flag = 0;
+        while (true) {
+            if (para.length == 0) {
+                break;
+            }
+            if (para.length <= flag) {
+                break;
+            }
+            var midStr = paramRep(str, para[flag]);
+            if (midStr == str) {
+                break;
+            } else {
+                str = midStr;
+                flag++;
+            }
+        }
+        while (true) {
+            var midStr = domax(str);
+            if (midStr == str) {
+                break;
+            } else {
+                str = midStr;
+            }
+        }
+        while (true) {
+            var midStr = domin(str);
+            if (midStr == str) {
+                break;
+            } else {
+                str = midStr;
+            }
+        }
+        while (true) {
+            var midStr = doavg(str);
+            if (midStr == str) {
+                break;
+            } else {
+                str = midStr;
+            }
+        }
+        while (true) {
+            var midStr = doabs(str);
+            if (midStr == str) {
+                break;
+            } else {
+                str = midStr;
+            }
+        }
+        alert(calculate(str));
+    }
+
+
+
+    function paramRep(str, v) {
+        var d = str.indexOf(':') + 1;
+        for (var i = d; i < str.length; i++) {
+            if (str[i] == ' ' || str[i] == '+' || str[i] == '-' || str[i] == '*' || str[i] == '/' || str[i] == '(' ||
+                str[i] == ')' || i == str.length - 1) {
+                var repStr = str.substring(0, d - 1) + v + str.substring(i);
+                return repStr;
+            }
+        }
+    }
+    function calculate(input) {
+
+        var f = {
+            add: '+',
+            sub: '-',
+            div: '/',
+            mlt: '*',
+            mod: '%',
+            exp: '^'
+        };
+        // Create array for Order of Operation and precedence
+        f.ooo = [
+            [
+                [f.mlt],
+                [f.div],
+                [f.mod],
+                [f.exp]
+            ],
+            [
+                [f.add],
+                [f.sub]
+            ]
+        ];
+        input = input.replace(/[^0-9%^*\/()\-+.]/g, ''); // clean up unnecessary characters
+        var output;
+        for (var i = 0, n = f.ooo.length; i < n; i++) {
+            // Regular Expression to look for operators between floating numbers or integers
+            var re = new RegExp('(\\d+\\.?\\d*)([\\' + f.ooo[i].join('\\') + '])(\\d+\\.?\\d*)');
+            re.lastIndex = 0; // take precautions and reset re starting pos
+            console.log(RegExp.$1)
+            console.log(RegExp.$2)
+            console.log(RegExp.$3)
+            console.log(Math.max(3, 6))
+            // Loop while there is still calculation for level of precedence
+            while (re.test(input)) {
+                output = _calculate(RegExp.$1, RegExp.$2, RegExp.$3);
+                if (isNaN(output) || !isFinite(output))
+                    return output; // exit early if not a number
+                input = input.replace(re, output);
+            }
+        }
+
+        return output;
+
+        function _calculate(a, op, b) {
+            a = a * 1;
+            b = b * 1;
+            switch (op) {
+                case f.add:
+                    return a + b;
+                    break;
+                case f.sub:
+                    return a - b;
+                    break;
+                case f.div:
+                    return a / b;
+                    break;
+                case f.mlt:
+                    return a * b;
+                    break;
+                case f.mod:
+                    return a % b;
+                    break;
+                case f.exp:
+                    return Math.pow(a, b);
+                    break;
+                default:
+                    null;
+            }
+        }
+    }
+
+    function domax(str) {
+        var d = str.indexOf("max") + 3;
+        if (str.indexOf("max") == -1) {
+            return str;
+        }
+        for (var i = d; i < str.length; i++) {
+            if (str[i] == ")") {
+                var arry = str.substring(d + 1, i).split(',');
+                for (var k = 0; k < arry.length; k++) {
+                    arry[k] = calculate(arry[k])
+                }
+                arry.sort(function (a, b) {
+                    return a - b;
+                });
+                var res = arry[arry.length - 1];
+                var repStr = str.substring(0, d - 3) + res + str.substring(i + 1);
+
+                return repStr;
+            }
+        }
+
+    }
+
+
+    function domin(str) {
+        var d = str.indexOf("min") + 3;
+        if (str.indexOf("min") == -1) {
+            return str;
+        }
+        for (var i = d; i < str.length; i++) {
+            if (str[i] == ")") {
+                var arry = str.substring(d + 1, i).split(',');
+                for (var k = 0; k < arry.length; k++) {
+                    arry[k] = calculate(arry[k])
+                }
+                arry.sort(function (a, b) {
+                    return a - b;
+                });
+                var res = arry[0];
+                var repStr = str.substring(0, d - 3) + res + str.substring(i + 1);
+                return repStr;
+            }
+        }
+
+    }
+
+    function doabs(str) {
+        var d = str.indexOf("abs") + 3;
+        if (str.indexOf("abs") == -1) {
+            return str;
+        }
+        for (var i = d; i < str.length; i++) {
+            if (str[i] == ")") {
+                var arry = str.substring(d + 1, i);
+                var res = 0;
+                if (arry < 0) {
+                    res = 0 - arry;
+                } else {
+                    res = arry;
+                }
+                var repStr = str.substring(0, d - 3) + res + str.substring(i + 1);
+                return repStr;
+            }
+        }
+
+    }
+
+    function doavg(str) {
+        var d = str.indexOf("avg") + 3;
+        if (str.indexOf("avg") == -1) {
+            return str;
+        }
+        for (var i = d; i < str.length; i++) {
+            if (str[i] == ")") {
+                var arry = str.substring(d + 1, i).split(',');
+                for (var k = 0; k < arry.length; k++) {
+                    arry[k] = calculate(arry[k])
+                }
+                var sum = 0;
+                for (var j = 0; j < arry.length; j++) {
+                    sum += parseFloat(arry[j]);
+                }
+                var res = parseFloat(sum) / parseFloat(arry.length);
+                var repStr = str.substring(0, d - 3) + res + str.substring(i + 1);
+                return repStr;
+            }
+        }
+
+    }
+
+
+    function isNumber(val) {
+        var regPos = /^\d+(\.\d+)?$/; //非负浮点数
+        var regNeg = /^(-(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*)))$/; //负浮点数
+        if (regPos.test(val) || regNeg.test(val)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
+
+    function calculate(input) {
+        if (isNumber(input)) {
+            return parseFloat(input);
+        }
+
+        var f = {
+            add: '+',
+            sub: '-',
+            div: '/',
+            mlt: '*',
+            mod: '%',
+            exp: '^'
+        };
+        // Create array for Order of Operation and precedence
+        f.ooo = [
+            [
+                [f.mlt],
+                [f.div],
+                [f.mod],
+                [f.exp]
+            ],
+            [
+                [f.add],
+                [f.sub]
+            ]
+        ];
+
+        input = input.replace(/[^0-9%^*\/()\-+.]/g, ''); // clean up unnecessary characters
+
+        var output;
+        for (var i = 0, n = f.ooo.length; i < n; i++) {
+
+            // Regular Expression to look for operators between floating numbers or integers
+            var re = new RegExp('(\\d+\\.?\\d*)([\\' + f.ooo[i].join('\\') + '])(\\d+\\.?\\d*)');
+            re.lastIndex = 0; // take precautions and reset re starting pos
+            console.log(RegExp.$1)
+            console.log(RegExp.$2)
+            console.log(RegExp.$3)
+            console.log(Math.max(3, 6))
+            // Loop while there is still calculation for level of precedence
+            while (re.test(input)) {
+                output = _calculate(RegExp.$1, RegExp.$2, RegExp.$3);
+                if (isNaN(output) || !isFinite(output))
+                    return output; // exit early if not a number
+                input = input.replace(re, output);
+            }
+        }
+
+        return output;
+
+        function _calculate(a, op, b) {
+            a = a * 1;
+            b = b * 1;
+            switch (op) {
+                case f.add:
+                    return a + b;
+                    break;
+                case f.sub:
+                    return a - b;
+                    break;
+                case f.div:
+                    return a / b;
+                    break;
+                case f.mlt:
+                    return a * b;
+                    break;
+                case f.mod:
+                    return a % b;
+                    break;
+                case f.exp:
+                    return Math.pow(a, b);
+                    break;
+                default:
+                    null;
+            }
+        }
+    }
+</script>
